@@ -1,0 +1,34 @@
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Environments
+.env
+venv/
+env/
+
+# Database
+db.sqlite3
+
+# Media and static files (if not versioned)
+/media/
+/static_collected/
+
+# Logs
+*.log
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Django specific
+*.mo
+*.pot
+local_settings.py
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Node.js modules
+node_modules/
