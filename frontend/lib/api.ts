@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api"; // Assurez-vous que c'est l'URL correcte de votre backend Django
+const API_BASE_URL = "http://localhost:8000/api"; // URL de notre api Django
 
 export interface Service {
   id: number;
