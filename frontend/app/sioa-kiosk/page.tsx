@@ -94,9 +94,26 @@ export default function SIOAKiosk() {
               {services.map((service) => (
                 <Button
                   key={service.id}
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedService(service)
-                    setStep("scan")
+                    // Si service Information -> générer directement le ticket sans scanner
+                    if (service.name.toLowerCase().includes("information")) {
+                      try {
+                        const pseudo = `--`
+                        const ticket = await generateQueueTicket(service.id, pseudo)
+                        if (ticket) {
+                          setCurrentTicket(ticket as any)
+                          setStep("result")
+                        } else {
+                          alert("Erreur lors de la génération du ticket d'information.")
+                        }
+                      } catch (err) {
+                        console.error(err)
+                        alert("Erreur lors de la génération du ticket d'information.")
+                      }
+                    } else {
+                      setStep("scan")
+                    }
                   }}
                   className={`h-24 text-xl font-bold rounded-xl text-white ${service.name === "Information" ? "bg-orange-500 hover:bg-orange-600" : "bg-blue-600 hover:bg-blue-700"}`}
                 >
