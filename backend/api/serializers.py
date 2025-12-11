@@ -55,11 +55,7 @@ class TicketStatisticsSerializer(serializers.Serializer):
     debug_tickets_info = serializers.ListField(child=serializers.DictField())
 
     def get_waiting_tickets_by_company(self, obj):
-        # obj will be the aggregated data from the view
-        # This method should return a list of dictionaries, each with company info and ticket count
         return obj.get('waiting_tickets_by_company', [])
 
     def get_waiting_tickets_by_service(self, obj):
-        # obj will be the aggregated data from the view
-        # This method should return a list of dictionaries, each with service info and ticket count
         return obj.get('waiting_tickets_by_service', [])

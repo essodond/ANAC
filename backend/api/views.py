@@ -222,16 +222,34 @@ class TicketStatisticsView(APIView):
                 'status': ticket.status
             })
 
-        waiting_tickets_by_company = (
-            Ticket.objects.filter(counter__isnull=False, counter__assigned_company__isnull=False)
-            .values('counter__assigned_company__name', 'counter__assigned_company__code')
-            .annotate(count=Count('id'))
-            .order_by('counter__assigned_company__name')
-        )
+        # Waiting tickets by company: extract company from ticket_number (first 2 chars = IATA code)
+        # and find the company name
+        waiting_tickets_by_company = []
+        try:
+            company_counts = {}
+            for ticket in Ticket.objects.filter(status__in=['WAITING', 'CALLED']):
+                if len(ticket.ticket_number) >= 2:
+                    company_code = ticket.ticket_number[:2].upper()
+                    try:
+                        company = Company.objects.get(code__iexact=company_code)
+                        key = (company.name, company.code)
+                        company_counts[key] = company_counts.get(key, 0) + 1
+                    except Company.DoesNotExist:
+                        pass
+            
+            waiting_tickets_by_company = [
+                {'counter__assigned_company__name': k[0], 'counter__assigned_company__code': k[1], 'count': v}
+                for k, v in sorted(company_counts.items())
+            ]
+        except Exception as e:
+            print(f"Error computing waiting_tickets_by_company: {e}")
+            import traceback
+            traceback.print_exc()
+            waiting_tickets_by_company = []
         
-        # Waiting tickets by service
+        # Waiting tickets by service: count all WAITING/CALLED tickets grouped by service
         waiting_tickets_by_service = (
-            Ticket.objects.filter(service__isnull=False)
+            Ticket.objects.filter(status__in=['WAITING', 'CALLED'], service__isnull=False)
             .values('service__name')
             .annotate(count=Count('id'))
             .order_by('service__name')
@@ -240,15 +258,16 @@ class TicketStatisticsView(APIView):
         try:
             data = {
                 'total_waiting_tickets': total_waiting_tickets,
-                'waiting_tickets_by_company': list(waiting_tickets_by_company),
+                'waiting_tickets_by_company': waiting_tickets_by_company,
                 'waiting_tickets_by_service': list(waiting_tickets_by_service),
                 'debug_tickets_info': debug_tickets_info,
             }
-            serializer = TicketStatisticsSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
+            serializer = TicketStatisticsSerializer(data)
             return Response(serializer.data)
         except Exception as e:
             print(f"Error in TicketStatisticsView: {e}")
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=500)
 
 class CounterTicketsListView(generics.ListAPIView):
