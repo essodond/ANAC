@@ -234,12 +234,7 @@ export default function SIOAKiosk() {
                 <p className="text-gray-600">Comptoir attribué: {currentTicket.assigned_counter}</p>
                 <p className="text-gray-600">Temps d'attente estimé: {currentTicket.estimated_waiting_time_minutes} minutes</p>
 
-                {!selectedService?.name.toLowerCase().includes("information") && (
-                  <>
-                    <p className="text-gray-600">Créé le: {new Date(currentTicket.created_at).toLocaleString()}</p>
-                    <p className="text-gray-600">Statut: {currentTicket.status}</p>
-                  </>
-                )}
+                {/* Créé le et Statut supprimés — n'apparaissent plus dans l'UI */}
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4">
