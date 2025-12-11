@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plane, Monitor, Settings, Smartphone, Radio, Users, BarChart3 } from "lucide-react"
+import { Plane, Monitor, Settings, Smartphone, Radio, Phone, BarChart3 } from "lucide-react"
 
 export default function Home() {
   return (
@@ -59,7 +59,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/agent" className="w-full">
               <Button className="w-full h-24 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold flex flex-col items-center justify-center gap-2 rounded-xl">
-                <Users className="h-6 w-6" />
+                <Phone className="h-6 w-6" />
                 Console Agent
               </Button>
             </Link>
