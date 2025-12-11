@@ -80,14 +80,13 @@ export default function AgentPage() {
     async function fetchTickets() {
       if (selectedCounterId) {
         try {
-          setLoading(true)
           const fetchedTickets = await getCounterTickets(selectedCounterId)
           setTickets(fetchedTickets)
         } catch (err) {
           setError("Failed to load tickets for the selected counter.")
           console.error(err)
         } finally {
-          setLoading(false)
+          // don't toggle global loading during polling to avoid UI flash
         }
       }
     }
@@ -106,7 +105,16 @@ export default function AgentPage() {
     if (selectedCounterId) {
       try {
         const fetchedTickets = await getCounterTickets(selectedCounterId)
-        setTickets(fetchedTickets)
+        // only update state if data changed to avoid unnecessary renders
+        setTickets((prev) => {
+          try {
+            const prevStr = JSON.stringify(prev)
+            const nextStr = JSON.stringify(fetchedTickets)
+            return prevStr === nextStr ? prev : fetchedTickets
+          } catch (e) {
+            return fetchedTickets
+          }
+        })
       } catch (err) {
         setError("Failed to refresh tickets.")
         console.error(err)
