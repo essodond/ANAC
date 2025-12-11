@@ -224,13 +224,22 @@ export default function SIOAKiosk() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-2xl font-bold text-gray-900">Numéro de vol: {currentTicket.ticket_number}</p>
+                {/* For Information service we hide flight number, created date and status */}
+                {!selectedService?.name.toLowerCase().includes("information") && (
+                  <p className="text-2xl font-bold text-gray-900">Numéro de vol: {currentTicket.ticket_number}</p>
+                )}
+
                 <p className="text-2xl font-bold text-gray-900">Votre numéro d'attente: {currentTicket.queue_number}</p>
                 <p className="text-gray-600">Service: {selectedService.name}</p>
                 <p className="text-gray-600">Comptoir attribué: {currentTicket.assigned_counter}</p>
                 <p className="text-gray-600">Temps d'attente estimé: {currentTicket.estimated_waiting_time_minutes} minutes</p>
-                <p className="text-gray-600">Créé le: {new Date(currentTicket.created_at).toLocaleString()}</p>
-                <p className="text-gray-600">Statut: {currentTicket.status}</p>
+
+                {!selectedService?.name.toLowerCase().includes("information") && (
+                  <>
+                    <p className="text-gray-600">Créé le: {new Date(currentTicket.created_at).toLocaleString()}</p>
+                    <p className="text-gray-600">Statut: {currentTicket.status}</p>
+                  </>
+                )}
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4">
