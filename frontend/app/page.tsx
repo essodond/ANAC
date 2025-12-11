@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plane, Monitor, Settings, Smartphone, Radio } from "lucide-react"
+import { Plane, Monitor, Settings, Smartphone, Radio, Users, BarChart3 } from "lucide-react"
 
 export default function Home() {
   return (
@@ -46,6 +46,35 @@ export default function Home() {
               <Button className="w-full h-24 bg-purple-600 hover:bg-purple-700 text-white font-semibold flex flex-col items-center justify-center gap-2 rounded-xl">
                 <Monitor className="h-6 w-6" />
                 Affichage FIDS
+              </Button>
+            </Link>
+          </div>
+        </div>
+        {/* Système de Queue Existant */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 text-indigo-600" />
+            Système de Queue Existant
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/agent" className="w-full">
+              <Button className="w-full h-24 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold flex flex-col items-center justify-center gap-2 rounded-xl">
+                <Users className="h-6 w-6" />
+                Console Agent
+              </Button>
+            </Link>
+
+            <Link href="/display" className="w-full">
+              <Button className="w-full h-24 bg-pink-600 hover:bg-pink-700 text-white font-semibold flex flex-col items-center justify-center gap-2 rounded-xl">
+                <Monitor className="h-6 w-6" />
+                Affichage Public
+              </Button>
+            </Link>
+
+            <Link href="/supervisor" className="w-full">
+              <Button className="w-full h-24 bg-red-600 hover:bg-red-700 text-white font-semibold flex flex-col items-center justify-center gap-2 rounded-xl">
+                <BarChart3 className="h-6 w-6" />
+                Superviseur
               </Button>
             </Link>
           </div>
