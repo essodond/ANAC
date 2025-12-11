@@ -116,16 +116,25 @@ class GenererTicketEtCalculerTAEView(APIView):
         try:
             service = Service.objects.get(pk=service_id)
             
-            # 🌟 ÉTAPE CLÉ : Identifier la Compagnie via le code IATA
-            company = Company.objects.get(code__iexact=company_code) 
-            
-            # Vérification facultative : Assurer que le vol existe (pour la robustesse)
-            # Nous utilisons ici le Flight pour valider l'existence du vol réel
-            Flight.objects.get(flight_number=ticket_number_input) 
+            # Pour le service Information, on ne valide pas la compagnie ni le vol
+            if service.name and 'information' in service.name.lower():
+                company = None  # Pas de compagnie pour Information
+            else:
+                # 🌟 ÉTAPE CLÉ : Identifier la Compagnie via le code IATA
+                company = Company.objects.get(code__iexact=company_code) 
+                
+                # Vérification facultative : Assurer que le vol existe (pour la robustesse)
+                # Nous utilisons ici le Flight pour valider l'existence du vol réel
+                Flight.objects.get(flight_number=ticket_number_input)
 
-        except ObjectDoesNotExist:
+        except Service.DoesNotExist:
             return Response(
-                {"error": f"Code compagnie '{company_code}' ou Service introuvable."}, 
+                {"error": f"Service '{service_id}' introuvable."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Company.DoesNotExist:
+            return Response(
+                {"error": f"Code compagnie '{company_code}' introuvable."}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Flight.DoesNotExist:
@@ -148,31 +157,37 @@ class GenererTicketEtCalculerTAEView(APIView):
 
         # 1. Détermination des variables de calcul
         
-        # N_compteur : Nombre de comptoirs ouverts (LIBRE ou OCCUPE) attribués à CETTE compagnie
-        active_counters_count = Counter.objects.filter(
-            assigned_company=company,
-            status__in=['LIBRE', 'OCCUPE']
-        ).count()
-
-        # N_voyageurs_avant : Nombre de voyageurs en attente pour CE vol (même ticket_number)
-        # qui sont arrivés avant ce nouveau ticket.
-        waiting_tickets_count = Ticket.objects.filter(
-            ticket_number=ticket_number_input,
-            status__in=['WAITING', 'CALLED'], 
-            created_at__lt=new_ticket.created_at
-        ).count()
-
-        T_moyen = company.average_service_time_minutes
-
-        # 2. Formule de Calcul du Temps d'Attente (TAE)
-        if active_counters_count == 0:
-            estimated_time = -1 
-            details = f"Aucun comptoir ouvert pour {company.name} (Code {company_code})."
+        # Pour Information, pas de calcul de TAE sophistiqué
+        if service.name and 'information' in service.name.lower():
+            estimated_time = 5  # Temps d'attente par défaut pour Information
+            details = "Service Information - assigné à comptoir B8 ou B9"
+            active_counters_count = 2  # Pour Information seulement
         else:
-            estimated_time = math.ceil(
-                (waiting_tickets_count / active_counters_count) * T_moyen
-            )
-            details = f"Basé sur {waiting_tickets_count} personnes devant et {active_counters_count} comptoirs actifs de {company.name}."
+            # N_compteur : Nombre de comptoirs ouverts (LIBRE ou OCCUPE) attribués à CETTE compagnie
+            active_counters_count = Counter.objects.filter(
+                assigned_company=company,
+                status__in=['LIBRE', 'OCCUPE']
+            ).count()
+
+            # N_voyageurs_avant : Nombre de voyageurs en attente pour CE vol (même ticket_number)
+            # qui sont arrivés avant ce nouveau ticket.
+            waiting_tickets_count = Ticket.objects.filter(
+                ticket_number=ticket_number_input,
+                status__in=['WAITING', 'CALLED'], 
+                created_at__lt=new_ticket.created_at
+            ).count()
+
+            T_moyen = company.average_service_time_minutes
+
+            # 2. Formule de Calcul du Temps d'Attente (TAE)
+            if active_counters_count == 0:
+                estimated_time = -1 
+                details = f"Aucun comptoir ouvert pour {company.name} (Code {company_code})."
+            else:
+                estimated_time = math.ceil(
+                    (waiting_tickets_count / active_counters_count) * T_moyen
+                )
+                details = f"Basé sur {waiting_tickets_count} personnes devant et {active_counters_count} comptoirs actifs de {company.name}."
         
         # --- TÂCHE C : Attribution d'un Comptoir (avec stratégie file la plus courte) ---
         try:
@@ -207,7 +222,7 @@ class GenererTicketEtCalculerTAEView(APIView):
             "queue_number": new_ticket.queue_number,
             "estimated_waiting_time_minutes": estimated_time,
             "details": details,
-            "company": company.name,
+            "company": company.name if company else "Information",
             "assigned_counter": assigned_counter.name if assigned_counter else "Aucun"
         }
         
